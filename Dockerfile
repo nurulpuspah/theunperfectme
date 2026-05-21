@@ -1,12 +1,15 @@
 FROM node:18 AS builder
 WORKDIR /app
 
+# Hanya copy package.json, tanpa lockfile bawaan Windows
 COPY package.json ./
 
-# Paksa instalasi standar agar menarik semua dependency, termasuk Rollup Linux tadi
-RUN npm install --legacy-peer-deps
+# Tambahkan flag --no-audit dan --no-fund biar prosesnya cepet dan bersih
+RUN npm install --legacy-peer-deps --no-audit --no-fund
 
 COPY . .
+
+# Jalankan build Vite
 RUN npm run build
 
 FROM nginx:alpine
