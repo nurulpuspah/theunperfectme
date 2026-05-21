@@ -1,0 +1,88 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Information about a registered user",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique identifier of the user (matching Firebase Auth UID)"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Display name of the user from their Google provider profile"
+        }
+      },
+      "required": ["userId", "email"]
+    },
+    "Win": {
+      "title": "Win",
+      "description": "A single daily achievement or small victory recorded by a user",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "A unique id for the win"
+        },
+        "text": {
+          "type": "string",
+          "description": "The description or text of the achievement"
+        },
+        "date": {
+          "type": "string",
+          "description": "The calendar date associated with the win (YYYY-MM-DD)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp showing when this win was created"
+        }
+      },
+      "required": ["id", "text", "date", "createdAt"]
+    },
+    "Thought": {
+      "title": "Thought",
+      "description": "A rough or difficult thought that was mended with gold (Kintsugi)",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "A unique id for the thought"
+        },
+        "text": {
+          "type": "string",
+          "description": "The heavy or difficult thought text"
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "The millisecond timestamp when the thought occurred"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp showing when this thought was created in Firestore"
+        }
+      },
+      "required": ["id", "text", "timestamp", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "The user document"
+    },
+    "/users/{userId}/wins/{winId}": {
+      "schema": "Win",
+      "description": "Subcollection storing the user's daily small victories"
+    },
+    "/users/{userId}/thoughts/{thoughtId}": {
+      "schema": "Thought",
+      "description": "Subcollection storing the user's heavy thoughts (things to let go)"
+    }
+  }
+}

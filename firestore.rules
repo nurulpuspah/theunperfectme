@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Check if user object is valid
+    function isValidUser(data, userId) {
+      return data.keys().hasAll(['userId', 'email'])
+        && data.keys().size() <= 4
+        && data.userId == userId
+        && data.email is string
+        && (data.displayName == null || data.displayName is string);
+    }
+
+    // Check if win object is valid
+    function isValidWin(data) {
+      return data.keys().hasAll(['id', 'text', 'date', 'createdAt'])
+        && data.keys().size() == 4
+        && data.id is string
+        && data.id.size() <= 128
+        && data.text is string
+        && data.text.size() <= 500
+        && data.date is string
+        && data.date.size() == 10
+        && data.createdAt == request.time;
+    }
+
+    // Check if thought object is valid
+    function isValidThought(data) {
+      return data.keys().hasAll(['id', 'text', 'timestamp', 'createdAt'])
+        && data.keys().size() == 4
+        && data.id is string
+        && data.id.size() <= 128
+        && data.text is string
+        && data.text.size() <= 1000
+        && data.timestamp is int
+        && data.createdAt == request.time;
+    }
+
+    // Users Collection rules
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data, userId);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data, userId) 
+        && request.resource.data.userId == resource.data.userId;
+      allow delete: if isOwner(userId);
+
+      // Wins subcollection rules
+      match /wins/{winId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(winId) && isValidWin(request.resource.data);
+        allow delete: if isOwner(userId) && isValidId(winId);
+        allow update: if false;
+      }
+
+      // Thoughts subcollection rules
+      match /thoughts/{thoughtId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(thoughtId) && isValidThought(request.resource.data);
+        allow delete: if isOwner(userId) && isValidId(thoughtId);
+        allow update: if false;
+      }
+    }
+  }
+}
