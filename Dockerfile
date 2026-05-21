@@ -1,15 +1,13 @@
 FROM node:18 AS builder
 WORKDIR /app
 
-# Hanya copy package.json, tanpa lockfile bawaan Windows
-COPY package.json ./
+# Copy file package.json dan package-lock.json (jika ada)
+COPY package*.json ./
 
-# Tambahkan flag --no-audit dan --no-fund biar prosesnya cepet dan bersih
-RUN npm install --legacy-peer-deps --no-audit --no-fund
+# Pake perintah 'npm ci' + flag os linux agar dia wajib download ulang murni versi Linux
+RUN npm ci --os=linux --cpu=x64 --legacy-peer-deps
 
 COPY . .
-
-# Jalankan build Vite
 RUN npm run build
 
 FROM nginx:alpine
