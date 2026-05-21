@@ -1,12 +1,12 @@
-# Langkah 1: Build aplikasi pakai Node.js berbasis Alpine Linux
-FROM node:18-alpine AS builder
+# Langkah 1: Build aplikasi pakai Node berbasis Debian Slim (lebih bersahabat dengan Tailwind v4)
+FROM node:18-slim AS builder
 WORKDIR /app
 
 # Copy package.json dan package-lock.json
 COPY package*.json ./
 
-# Install dependencies secara bersih termasuk native binding Tailwind untuk Linux
-RUN npm install --include=optional && npm rebuild
+# Jalankan instalasi dependency secara bersih
+RUN npm ci
 
 # Copy seluruh source code aplikasi
 COPY . .
