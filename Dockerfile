@@ -1,23 +1,28 @@
-# Langkah 1: Build aplikasi menggunakan Node versi lengkap (bukan slim/alpine)
+# Langkah 1: Build aplikasi menggunakan Node standar (Debian)
 FROM node:18 AS builder
 WORKDIR /app
 
-# HANYA copy package.json agar lockfile lama yang eror diabaikan total
+# Copy file konfigurasi package
 COPY package.json ./
 
-# Paksa hapus cache dan install package bersih langsung untuk arsitektur Linux
-RUN npm cache clean --force && \
-    npm install --os=linux --cpu=x64 --legacy-peer-deps
+# Pasang dependency dengan mengabaikan binary optional bawaan OS (Kunci sukses Tailwind v4)
+RUN npm install --no-optional --legacy-peer-deps
 
-# Baru copy sisa file project lainnya
+# Copy seluruh source code project
 COPY . .
 
-# Jalankan build Vite
+# Jalankan proses build Vite untuk menghasilkan folder dist
 RUN npm run build
 
 
-# Langkah 2: Jalankan menggunakan Nginx
+# Langkah 2: Sediakan web server menggunakan Nginx ringan
 FROM nginx:alpine
+
+# Copy hasil build dari stage builder ke dalam folder Nginx
 COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Buka port 80 untuk akses web umum
 EXPOSE 80
+
+# Jalankan web server Nginx
 CMD ["nginx", "-g", "daemon off;"]
